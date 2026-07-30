@@ -7,7 +7,7 @@
     <title>網路速度測試</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: #f4f7f6;
             color: #333;
             text-align: center;
@@ -27,12 +27,63 @@
             margin-bottom: 20px;
             color: #2c3e50;
         }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #27ae60;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>網路速度測試</h1>
-        <p>網頁已經成功上線囉！</p>
+        <p>點擊下方按鈕開始檢測你的連線速度</p>
+        <button onclick="startTest()">開始測試</button>
+        <div id="result"></div>
     </div>
+
+    <script>
+        function startTest() {
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerText = "測速中，請稍候...";
+
+            // 測試下載速度（使用一個小檔案進行測試）
+            const imageAddr = "https://upload.wikimedia.org/wikipedia/commons/3/3f/Placeholder_view_vector.svg?" + Math.random();
+            const startTime = new Date().getTime();
+            const downloadImage = new Image();
+
+            downloadImage.onload = function () {
+                const endTime = new Date().getTime();
+                const duration = (endTime - startTime) / 1000; // 秒
+                const bitsLoaded = 500000 * 8; // 假設檔案大小約 500KB 進行計算估算
+                const speedBps = (bitsLoaded / duration).toFixed(2);
+                const speedKbps = (speedBps / 1024).toFixed(2);
+                const speedMbps = (speedKbps / 1024).toFixed(2);
+
+                resultDiv.innerText = `下載速度：${speedMbps} Mbps`;
+            };
+
+            downloadImage.onerror = function () {
+                resultDiv.innerText = "測速失敗，請檢查網路連線";
+            };
+
+            downloadImage.src = imageAddr;
+        }
+    </script>
 </body>
 </html>
