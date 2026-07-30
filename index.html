@@ -62,15 +62,14 @@
             const resultDiv = document.getElementById("result");
             resultDiv.innerText = "測速中，請稍候...";
 
-            // 測試下載速度（使用一個小檔案進行測試）
             const imageAddr = "https://upload.wikimedia.org/wikipedia/commons/3/3f/Placeholder_view_vector.svg?" + Math.random();
             const startTime = new Date().getTime();
             const downloadImage = new Image();
 
             downloadImage.onload = function () {
                 const endTime = new Date().getTime();
-                const duration = (endTime - startTime) / 1000; // 秒
-                const bitsLoaded = 500000 * 8; // 假設檔案大小約 500KB 進行計算估算
+                const duration = (endTime - startTime) / 1000;
+                const bitsLoaded = 500000 * 8;
                 const speedBps = (bitsLoaded / duration).toFixed(2);
                 const speedKbps = (speedBps / 1024).toFixed(2);
                 const speedMbps = (speedKbps / 1024).toFixed(2);
@@ -87,3 +86,5 @@
     </script>
 </body>
 </html>
+
+            
