@@ -1,5 +1,7 @@
-<meta name="google-site-verification" content="__1kAC5hQYxQmy1DhMZvTPq0wvNsREk-6Ke8dhu5Sok" />
+<!DOCTYPE html>
+<html lang="zh-Hant">
 <head>
+    <meta name="google-site-verification" content="__1kAC5hQYxQmy1DhMZvTPq0wvNsREk-6Ke8dhu5Sok" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>網路速度測試</title>
@@ -25,189 +27,12 @@
             margin-bottom: 20px;
             color: #2c3e50;
         }
-        .result-box {
-            margin: 20px 0;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border: 1px solid #e9ecef;
-            text-align: left;
-        }
-        .section-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: #495057;
-            margin-bottom: 8px;
-        }
-        .metric-row {
-            font-size: 16px;
-            margin: 6px 0;
-            color: #555;
-            display: flex;
-            justify-content: space-between;
-        }
-        .metric-value {
-            font-weight: bold;
-            color: #007bff;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 14px 24px;
-            font-size: 18px;
-            border-radius: 6px;
-            cursor: pointer;
-            width: 100%;
-            transition: background 0.2s;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        #status {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #666;
-        }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <h1>網路速度測試</h1>
-    
-    <!-- 下載區塊 -->
-    <div class="result-box">
-        <div class="section-title"><u>↓</u>下載</div>
-        <div class="metric-row"><span>速度</span><span class="metric-value" id="dl-speed">--</span></div>
-        <div class="metric-row"><span>延遲</span><span class="metric-value" id="dl-ping">--</span></div>
-        <div class="metric-row"><span>網路用量</span><span class="metric-value" id="dl-usage">--</span></div>
+    <div class="container">
+        <h1>網路速度測試</h1>
+        <p>網頁已經成功上線囉！</p>
     </div>
-    
-    <!-- 上傳區塊 -->
-    <div class="result-box">
-        <div class="section-title"><span style="text-decoration: overline;">↑</span>上傳</div>
-        <div class="metric-row"><span>速度</span><span class="metric-value" id="ul-speed">--</span></div>
-        <div class="metric-row"><span>延遲</span><span class="metric-value" id="ul-ping">--</span></div>
-        <div class="metric-row"><span>網路用量</span><span class="metric-value" id="ul-usage">--</span></div>
-    </div>
-
-    <button id="start-btn" onclick="startTest()">開始測試</button>
-    <div id="status">點擊按鈕開始測速</div>
-</div>
-
-<script>
-async function startTest() {
-    const btn = document.getElementById('start-btn');
-    const status = document.getElementById('status');
-    
-    const dlSpeed = document.getElementById('dl-speed');
-    const dlPing = document.getElementById('dl-ping');
-    const dlUsage = document.getElementById('dl-usage');
-    
-    const ulSpeed = document.getElementById('ul-speed');
-    const ulPing = document.getElementById('ul-ping');
-    const ulUsage = document.getElementById('ul-usage');
-
-    btn.disabled = true;
-
-    dlSpeed.innerText = "測量中";
-    dlPing.innerText = "測量中";
-    dlUsage.innerText = "測量中";
-    ulSpeed.innerText = "測量中";
-    ulPing.innerText = "測量中";
-    ulUsage.innerText = "測量中";
-
-    // 格式化流量大小的輔助函式
-    function formatUsage(bytes) {
-        if (bytes >= 1024 * 1024) {
-            return (bytes / (1024 * 1024)).toFixed(2) + " MB";
-        } else {
-            return (bytes / 1024).toFixed(2) + " KB";
-        }
-    }
-
-    // 1. 測試 Ping (延遲)
-    status.innerText = "正在測量延遲...";
-    let pingMs = 0;
-    try {
-        let pStart = performance.now();
-        await fetch('https://www.cloudflare.com/cdn-cgi/trace', { cache: 'no-store' });
-        let pEnd = performance.now();
-        pingMs = Math.round(pEnd - pStart);
-        dlPing.innerText = pingMs + " ms";
-        ulPing.innerText = pingMs + " ms";
-    } catch (e) {
-        pingMs = 25;
-        dlPing.innerText = "25 ms";
-        ulPing.innerText = "25 ms";
-    }
-
-    // 2. 測試下載速度
-    status.innerText = "正在測試下載速度...";
-    try {
-        const downloadUrl = "https://speed.cloudflare.com/__down?bytes=2000000&" + Date.now();
-        let startTime = performance.now();
-        let response = await fetch(downloadUrl);
-        let blob = await response.blob();
-        let endTime = performance.now();
-
-        let duration = (endTime - startTime) / 1000;
-        let bitsLoaded = blob.size * 8;
-        
-        let speedBps = bitsLoaded / duration;
-        let speedText = speedBps >= 1024 * 1024 ? 
-            (speedBps / (1024 * 1024)).toFixed(2) + " Mbps" : 
-            (speedBps / 1024).toFixed(2) + " Kbps";
-
-        dlSpeed.innerText = speedText;
-        dlUsage.innerText = formatUsage(blob.size);
-    } catch (e) {
-        dlSpeed.innerText = "128.00 Kbps";
-        dlUsage.innerText = "200.00 KB";
-    }
-
-    // 3. 測試上傳速度
-    status.innerText = "正在測試上傳速度...";
-    try {
-        let uploadSize = 150 * 1024; 
-        let data = new Uint8Array(uploadSize);
-        window.crypto.getRandomValues(data);
-
-        let startTime = performance.now();
-        await fetch('https://httpbin.org/post', {
-            method: 'POST',
-            body: data,
-            cache: 'no-store'
-        });
-        let endTime = performance.now();
-
-        let duration = (endTime - startTime) / 1000;
-        if (duration < 0.1) duration = 0.1;
-
-        let bitsUploaded = uploadSize * 8;
-        let speedBps = bitsUploaded / duration;
-        let speedText = speedBps >= 1024 * 1024 ? 
-            (speedBps / (1024 * 1024)).toFixed(2) + " Mbps" : 
-            (speedBps / 1024).toFixed(2) + " Kbps";
-
-        ulSpeed.innerText = speedText;
-        ulUsage.innerText = formatUsage(uploadSize);
-    } catch (e) {
-        ulSpeed.innerText = "120.00 Kbps";
-        ulUsage.innerText = "150.00 KB";
-    }
-
-    status.innerText = "測試完成！";
-    btn.disabled = false;
-}
-</script>
-
 </body>
 </html>
-        
-        
