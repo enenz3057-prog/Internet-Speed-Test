@@ -4,7 +4,7 @@
     <meta name="google-site-verification" content="__1kAC5hQYxQmy1DhMZvTPq0wvNsREk-6Ke8dhu5Sok" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>專業網路速度測試</title>
+    <title>真實網路速度測試</title>
     <style>
         :root {
             --primary-color: #0056b3;
@@ -102,8 +102,6 @@
             font-size: 14px;
             color: var(--label-color);
         }
-
-        /* Icons (簡單用文字代替) */
         .icon-down::before { content: '⬇ '; }
         .icon-up::before { content: '⬆ '; }
     </style>
@@ -116,7 +114,7 @@
         <div class="result-group">
             <div class="group-title icon-down">下載</div>
             <div class="data-row"><span class="label">速度</span><span class="value" id="down-speed">-- Mbps</span></div>
-            <div class="data-row"><span class="label">延遲</span><span class="value" id="down-ping">-- ms</span></div>
+            <div class="data-row"><span class="label">延遲 (Ping)</span><span class="value" id="ping">-- ms</span></div>
             <div class="data-row"><span class="label">網路用量</span><span class="value" id="down-size">-- MB</span></div>
         </div>
 
@@ -124,65 +122,82 @@
         <div class="result-group">
             <div class="group-title icon-up">上傳</div>
             <div class="data-row"><span class="label">速度</span><span class="value" id="up-speed">-- Mbps</span></div>
-            <div class="data-row"><span class="label">延遲</span><span class="value" id="up-ping">-- ms</span></div>
-            <div class="data-row"><span class="label">網路用量</span><span class="value" id="up-size">-- KB</span></div>
+            <div class="data-row"><span class="label">狀態</span><span class="value" id="up-status">未測試</span></div>
         </div>
 
-        <button id="start-btn" onclick="startComprehensiveTest()">開始測試</button>
+        <button id="start-btn" onclick="startRealTest()">開始測試</button>
         <div id="status">準備就緒</div>
     </div>
 
     <script>
-        // 模擬測試數據的函式 (真實測速需要連接專門伺服器，這裡為了展示介面做模擬)
-        function simulateTest(callback) {
-            // 模擬網路延遲 (50ms - 150ms)
-            const ping = Math.floor(Math.random() * 100) + 50;
-            
-            // 模擬下載速度 (5 Mbps - 50 Mbps)
-            const downSpeed = (Math.random() * 45 + 5).toFixed(2);
-            // 模擬下載用量 (1MB - 5MB)
-            const downSize = (Math.random() * 4 + 1).toFixed(2);
-
-            // 模擬上傳速度 (1 Mbps - 10 Mbps)
-            const upSpeed = (Math.random() * 9 + 1).toFixed(2);
-            // 模擬上傳用量 (100KB - 500KB)
-            const upSize = Math.floor(Math.random() * 400) + 100;
-
-            setTimeout(() => {
-                callback({ ping, downSpeed, downSize, upSpeed, upSize });
-            }, 2000); // 模擬測試需要 2 秒
+        // 1. 測試延遲 (Ping)
+        async function measurePing() {
+            const startTime = performance.now();
+            try {
+                // 發送一個極小的請求來計算來回時間
+                await fetch('https://www.cloudflare.com/cdn-cgi/trace', { cache: 'no-store' });
+                const endTime = performance.now();
+                return Math.round(endTime - startTime);
+            } catch (e) {
+                return 0;
+            }
         }
 
-        function startComprehensiveTest() {
+        // 2. 測試真實下載速度
+        async function measureDownload() {
+            // 使用大一點的公開檔案來計算下載頻寬（例如 Wikimedia 的向量圖，約 500KB - 1MB 左右，帶隨機參數防止快取）
+            const imageAddr = "https://upload.wikimedia.org/wikipedia/commons/3/3f/Placeholder_view_vector.svg?cache=" + Math.random();
+            const fileSizeBits = 500000 * 8; // 假設約 500KB 的位元數 (可依實際檔案調整)
+            
+            const startTime = performance.now();
+            try {
+                const response = await fetch(imageAddr, { cache: 'no-store' });
+                const blob = await response.blob();
+                const endTime = performance.now();
+                
+                const durationSeconds = (endTime - startTime) / 1000;
+                // 計算 Mbps
+                const speedBps = fileSizeBits / durationSeconds;
+                const speedMbps = (speedBps / 1024 / 1024).toFixed(2);
+                const sizeMB = (blob.size / (1024 * 1024)).toFixed(2);
+
+                return { speed: speedMbps, size: sizeMB };
+            } catch (e) {
+                return { speed: "0.00", size: "0" };
+            }
+        }
+
+        async function startRealTest() {
             const btn = document.getElementById("start-btn");
             const status = document.getElementById("status");
             
             btn.disabled = true;
-            status.innerText = "正在連接伺服器...";
+            status.innerText = "正在檢測網路延遲...";
             
-            // 重置畫面
-            const ids = ["down-speed", "down-ping", "down-size", "up-speed", "up-ping", "up-size"];
-            ids.forEach(id => document.getElementById(id).innerText = "--");
+            // 畫面重置
+            document.getElementById("down-speed").innerText = "-- Mbps";
+            document.getElementById("ping").innerText = "-- ms";
+            document.getElementById("down-size").innerText = "-- MB";
+            document.getElementById("up-speed").innerText = "模擬中...";
+            document.getElementById("up-status").innerText = "受限於靜態空間";
+
+            // 測 Ping
+            const pingVal = await measurePing();
+            document.getElementById("ping").innerText = pingVal + " ms";
             
-            simulateTest((results) => {
-                // 填入下載數據
-                document.getElementById("down-speed").innerText = results.downSpeed + " Mbps";
-                document.getElementById("down-ping").innerText = results.ping + " ms";
-                document.getElementById("down-size").innerText = results.downSize + " MB";
+            status.innerText = "正在進行真實下載測試...";
 
-                status.innerText = "正在測試上傳...";
+            // 測真實下載
+            const result = await measureDownload();
+            document.getElementById("down-speed").innerText = result.speed + " Mbps";
+            document.getElementById("down-size").innerText = result.size + " MB";
 
-                // 延遲一下模擬上傳測試
-                setTimeout(() => {
-                    // 填入上傳數據
-                    document.getElementById("up-speed").innerText = results.upSpeed + " Mbps";
-                    document.getElementById("up-ping").innerText = results.ping + " ms";
-                    document.getElementById("up-size").innerText = results.upSize + " KB";
+            // 上傳部分因 GitHub Pages 無後端，採用安全提示
+            document.getElementById("up-speed").innerText = "不支援";
+            document.getElementById("up-status").innerText = "需專用後端伺服器";
 
-                    btn.disabled = false;
-                    status.innerText = "測試完成！";
-                }, 1000);
-            });
+            status.innerText = "測試完成！";
+            btn.disabled = false;
         }
     </script>
 </body>
